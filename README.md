@@ -33,7 +33,7 @@ pip install -r requirements.txt
 ### Extract Headers from HAR
 
 
-Extract har file
+Extract headers from har file by running:
 ```sh
 python main.py parse_har "path to HAR file.har"
 ```
