@@ -10,6 +10,15 @@ Unfortunately most popular online supermarket BARBORA.lt is not able to address 
 
 This repository contains an example script that could help you to get signal when there are open delivery timeslots.
 
+
+## Instalation
+
+Requires Python > 3
+
+```sh
+pip install -r requirements.txt
+```
+
 ## Usage
 
 ### Get HAR
