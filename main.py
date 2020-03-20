@@ -1,9 +1,9 @@
 import argparse
 import json
+import platform
 import random
 import sys
 import time
-import winsound
 from datetime import datetime
 
 import requests
@@ -33,7 +33,13 @@ def scrape_and_alarm(headers_path):
         data = response.json()
         available_hours = get_available_hours(data)
         if available_hours:
-            winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
+            if platform.system() in ("Darwin", "Linux"):
+                for beeps in range(1, BEEP_DURATION):
+                    for freq in range(1, BEEP_FREQUENCY):
+                        print("\a")
+            else:
+                import winsound
+                winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
         now = datetime.now()
         print(now)
 
