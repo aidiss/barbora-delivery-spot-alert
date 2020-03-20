@@ -31,9 +31,7 @@ def scrape_and_alarm(headers_path):
             return
 
         data = response.json()
-        matrix = [x["params"]["matrix"] for x in data["deliveries"]][0]
-
-        available_hours = get_available_hours()
+        available_hours = get_available_hours(data)
         if available_hours:
             winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
         now = datetime.now()
