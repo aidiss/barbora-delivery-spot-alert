@@ -5,8 +5,15 @@ import platform
 import random
 import sys
 import time
-import winsound
 import requests
+
+PLATFORM = "WIN"
+
+if platform.system().lower().startswith('win'):
+    import winsound
+elif platform.system().lower().startswith('dar'):
+    import os
+    PLATFORM = "MAC"
 
 BEEP_FREQUENCY = 1000
 BEEP_DURATION = 1000
@@ -74,7 +81,10 @@ def scrape_and_alarm(headers_path):
         if slots["available"]:
             logger("%s Open slots found!", len(slots["available"]))
             try:
-                winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
+                if PLATFORM == "WIN":
+                    winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
+                elif PLATFORM == "MAC":
+                    os.system('say "Open slots found"')
             except Exception as _:
                 # No beep for windows
                 pass
