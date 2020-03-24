@@ -72,7 +72,9 @@ def scrape_and_alarm(headers_path):
             continue
 
         if slots["available"]:
-            logger("%s Open slots found!", len(slots["available"]))
+            logger.info("%s Open slots found!", len(slots["available"]))
+            for slot in slots['available']:
+                logger.info('%s  %s', slot['deliveryTime'], slot['hour'])
             try:
                 winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
             except Exception as _:
