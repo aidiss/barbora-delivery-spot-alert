@@ -11,52 +11,79 @@ import requests
 BEEP_FREQUENCY = 1000
 BEEP_DURATION = 1000
 SLEEP_RANGE = 30, 60
+COOKIES_PATH = "cookies.json"
 LOG_LEVEL = "INFO"
 
 barbora_deliveries_url = "https://www.barbora.lt/api/eshop/v1/cart/deliveries"
 
 
 def scrape_and_alarm(headers_path):
+    headers = {}
     with open(headers_path) as f:
         try:
             headers = json.load(f)
+            logger.info("Loaded headers")
         except FileNotFoundError as e:
-            logging.error(e)
+            logger.error(e)
+
+    cookies = {}
+
+    try:
+        with open(COOKIES_PATH) as f:
+            cookies = json.load(f)
+            logger.info(
+                "Loaded cookies from %s. Delete file if you do not want to use most recent cookies",
+                COOKIES_PATH,
+            )
+    except FileNotFoundError as _:
+        pass
+    except json.decoder.JSONDecodeError as _:
+        print("file")
 
     session = requests.Session()
     session.headers.update(headers)
-    logging.debug(session.cookies)
+
     while True:
         try:
-            response = session.get(barbora_deliveries_url)
-            logging.debug(session.cookies)
+            response = session.get(barbora_deliveries_url, cookies=cookies)
+            logger.debug(session.cookies)
+            with open(COOKIES_PATH, "w") as f:
+                try:
+                    json.dump(dict(session.cookies), f, indent=4)
+                except FileNotFoundError as e:
+                    logger.error(e)
+
         except requests.exceptions.RequestException as e:
-            logging.error(e)
+            logger.error(e)
             time.sleep(random.randint(*SLEEP_RANGE))
             continue
-        logging.debug(response.cookies)
+        logger.debug(response.cookies)
 
         if not response.ok:
-            logging.error(response.json())
+            logger.error(response.json())
             time.sleep(random.randint(*SLEEP_RANGE))
 
         data = response.json()
         try:
-            available_hours = get_available_hours(data)
+            slots = get_available_hours(data)
         except KeyError as e:
-            logging.error(e)
+            logger.error(e)
             time.sleep(random.randint(*SLEEP_RANGE))
             continue
 
-        if available_hours:
-            logging("%s Open slots found!", len(available_hours))
+        if slots["available"]:
+            logger("%s Open slots found!", len(slots["available"]))
             try:
                 winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
             except Exception as _:
                 # No beep for windows
                 pass
-        else:
-            logging.info("No open slots found")
+
+        logger.info(
+            "%s open and %s closed slots",
+            len(slots["available"]),
+            len(slots["not_available"]),
+        )
 
         time.sleep(random.randint(*SLEEP_RANGE))
 
@@ -84,31 +111,47 @@ def get_delivieries_headers(data):
 
 
 def get_available_hours(data):
-    available_hours = []
-    empty_count = 0
+    slots = {"available": [], "not_available": []}
+
     matrix = [x["params"]["matrix"] for x in data["deliveries"]][0]
-    if not matrix:
-        logging.info('Empty matrix')
     for x in matrix:
         for hour in x["hours"]:
             if hour["available"]:
-                available_hours.append(hour)
+                slots["available"].append(hour)
             else:
-                empty_count += 1
-    logging.info('Empty count %s', empty_count)
-    return available_hours
+                slots["not_available"].append(hour)
+
+    return slots
 
 
-if __name__ == "__main__":
+def create_argument_parser():
     argument_parser = argparse.ArgumentParser(description="This is magic script")
     argument_parser.add_argument("command", choices=["parse_har", "alarm"])
     argument_parser.add_argument("path")
     argument_parser.add_argument("-v", "--verbose", action="store_true")
-    arguments = argument_parser.parse_args()
-    if arguments.verbose:
-        logging.basicConfig(level='DEBUG')
+    return argument_parser
+
+
+def create_logger(verbose):
+    logger = logging.getLogger("barbora alarm")
+    if verbose:
+        logger.setLevel(level="DEBUG")
     else:
-        logging.basicConfig(level=LOG_LEVEL)
+        logger.setLevel(LOG_LEVEL)
+    ch = logging.StreamHandler()
+
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
+
+if __name__ == "__main__":
+    argument_parser = create_argument_parser()
+    arguments = argument_parser.parse_args()
+    logger = create_logger(arguments.verbose)
     path = arguments.path
     if arguments.command == "parse_har":
         har_path = path
