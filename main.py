@@ -1,16 +1,17 @@
 import argparse
 import json
+import logging
 import platform
 import random
 import sys
 import time
-from datetime import datetime
 import winsound
 import requests
 
 BEEP_FREQUENCY = 1000
 BEEP_DURATION = 1000
 SLEEP_RANGE = 30, 60
+LOG_LEVEL = "INFO"
 
 barbora_deliveries_url = "https://www.barbora.lt/api/eshop/v1/cart/deliveries"
 
@@ -20,32 +21,42 @@ def scrape_and_alarm(headers_path):
         try:
             headers = json.load(f)
         except FileNotFoundError as e:
-            print(e)
+            logging.error(e)
 
+    session = requests.Session()
+    session.headers.update(headers)
+    logging.debug(session.cookies)
     while True:
         try:
-            response = requests.get(barbora_deliveries_url, headers=headers)
+            response = session.get(barbora_deliveries_url)
+            logging.debug(session.cookies)
         except requests.exceptions.RequestException as e:
-            print(e)
+            logging.error(e)
             time.sleep(random.randint(*SLEEP_RANGE))
             continue
+        logging.debug(response.cookies)
 
         if not response.ok:
-            print(response.json())
+            logging.error(response.json())
             time.sleep(random.randint(*SLEEP_RANGE))
 
         data = response.json()
-        available_hours = get_available_hours(data)
+        try:
+            available_hours = get_available_hours(data)
+        except KeyError as e:
+            logging.error(e)
+            time.sleep(random.randint(*SLEEP_RANGE))
+            continue
+
         if available_hours:
-            print('found')
+            logging("%s Open slots found!", len(available_hours))
             try:
                 winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
             except Exception as _:
                 # No beep for windows
                 pass
-
-        now = datetime.now()
-        print(now)
+        else:
+            logging.info("No open slots found")
 
         time.sleep(random.randint(*SLEEP_RANGE))
 
@@ -74,11 +85,17 @@ def get_delivieries_headers(data):
 
 def get_available_hours(data):
     available_hours = []
+    empty_count = 0
     matrix = [x["params"]["matrix"] for x in data["deliveries"]][0]
+    if not matrix:
+        logging.info('Empty matrix')
     for x in matrix:
         for hour in x["hours"]:
             if hour["available"]:
                 available_hours.append(hour)
+            else:
+                empty_count += 1
+    logging.info('Empty count %s', empty_count)
     return available_hours
 
 
@@ -86,7 +103,12 @@ if __name__ == "__main__":
     argument_parser = argparse.ArgumentParser(description="This is magic script")
     argument_parser.add_argument("command", choices=["parse_har", "alarm"])
     argument_parser.add_argument("path")
+    argument_parser.add_argument("-v", "--verbose", action="store_true")
     arguments = argument_parser.parse_args()
+    if arguments.verbose:
+        logging.basicConfig(level='DEBUG')
+    else:
+        logging.basicConfig(level=LOG_LEVEL)
     path = arguments.path
     if arguments.command == "parse_har":
         har_path = path
