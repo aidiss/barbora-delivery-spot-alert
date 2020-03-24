@@ -5,7 +5,7 @@ import random
 import sys
 import time
 from datetime import datetime
-
+import winsound
 import requests
 
 BEEP_FREQUENCY = 1000
@@ -17,29 +17,33 @@ barbora_deliveries_url = "https://www.barbora.lt/api/eshop/v1/cart/deliveries"
 
 def scrape_and_alarm(headers_path):
     with open(headers_path) as f:
-        headers = json.load(f)
+        try:
+            headers = json.load(f)
+        except FileNotFoundError as e:
+            print(e)
 
     while True:
         try:
             response = requests.get(barbora_deliveries_url, headers=headers)
         except requests.exceptions.RequestException as e:
             print(e)
-            return
+            time.sleep(random.randint(*SLEEP_RANGE))
+            continue
 
         if not response.ok:
             print(response.json())
-            return
+            time.sleep(random.randint(*SLEEP_RANGE))
 
         data = response.json()
         available_hours = get_available_hours(data)
         if available_hours:
-            if platform.system() in ("Darwin", "Linux"):
-                for beeps in range(1, BEEP_DURATION):
-                    for freq in range(1, BEEP_FREQUENCY):
-                        print("\a")
-            else:
-                import winsound
+            print('found')
+            try:
                 winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
+            except Exception as _:
+                # No beep for windows
+                pass
+
         now = datetime.now()
         print(now)
 
