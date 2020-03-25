@@ -60,8 +60,9 @@ def scrape_and_alarm(headers_path):
         logger.debug(response.cookies)
 
         if not response.ok:
-            logger.error(response.json())
+            logger.error(response.status_code)
             time.sleep(random.randint(*SLEEP_RANGE))
+            continue
 
         data = response.json()
         try:
