@@ -130,3 +130,5 @@ dmypy.json
 
 *.har
 cookies.json
+headers
+headers.json
