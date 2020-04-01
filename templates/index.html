@@ -21,11 +21,11 @@
         audio = new Audio('service-bell_daniel_simion.mp3')
         audio.Play
     }
-    
+
     eventSource.onmessage = function (e) {
         targetContainer.innerHTML = e.data + '<br>' + targetContainer.innerHTML;
-    }; 
-    
+    };
+
 </script>
 
 </html>
