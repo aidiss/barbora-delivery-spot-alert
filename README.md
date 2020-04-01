@@ -18,6 +18,29 @@ Requires Python > 3
 ```sh
 pip install -r requirements.txt
 ```
+## Android Instalation using Termux
+
+Google Play https://play.google.com/store/apps/details?id=com.termux
+
+`pkg up`
+
+`pkg install python`
+
+`pkg install sox`
+
+`termux-setup-storage`
+
+Change main.py to "play -q -n synth 1 sine 1000 vol 0.1"
+
+Copy all the repo files with the extracted json file to the phone
+
+`pip install -r requirements.txt`
+
+`cd storage/barbora-delivery-spot-alert/`
+
+Then, run `python main.py alarm headers.txt.json`
+
+Enable termux wakelock in notification bar
 
 ## Usage
 
