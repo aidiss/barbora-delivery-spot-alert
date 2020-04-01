@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbora</title>
+</head>
+
+<body>
+    <h1>Watch barbora</h1>
+    <div id="barbora_count">Waiting for first updated</div>
+</body>
+
+<script>
+    var targetContainer = document.getElementById("barbora_count");
+    var eventSource = new EventSource("/stream")
+
+    eventSource.onopen = function (e) {
+        console.log('Event stream initiated')
+        audio = new Audio('static/sounds/service-bell_daniel_simion.mp3')
+        audio.Play
+    }
+
+    eventSource.onmessage = function (e) {
+        targetContainer.innerHTML = e.data + '<br>' + targetContainer.innerHTML;
+    };
+
+</script>
+
+</html>

@@ -5,7 +5,10 @@ import platform
 import random
 import sys
 import time
+
 import requests
+
+from utils import HTTPRequest
 
 PLATFORM = "WIN"
 
@@ -113,6 +116,20 @@ def parse_har(path):
         with open(output_filename, "w") as f:
             json.dump(headers, f, indent=4)
 
+def parse_headers(path):
+    with open(path) as f:
+        data = f.read()
+
+    request = HTTPRequest(data)
+
+    headers = dict(request.headers)
+
+    if headers:
+        output_filename = path + ".json"
+        with open(output_filename, "w") as f:
+            json.dump(headers, f, indent=4)
+
+
 
 def get_delivieries_headers(data):
     for entry in data["log"]["entries"]:
@@ -136,10 +153,23 @@ def get_available_hours(data):
 
     return slots
 
+def magic():
+    # load headers
+    headers_path = 'headers.json'
+    with open(headers_path) as f:
+        headers = json.load(f)
+    session = requests.Session()
+    session.headers.update(headers)
+    response = session.get(barbora_deliveries_url)
+    data = response.json()
+    slots = get_available_hours(data)
+    report = "%s open and %s closed slots" % (len(slots["available"]), len(slots["not_available"]))
+    return report
+
 
 def create_argument_parser():
     argument_parser = argparse.ArgumentParser(description="This is magic script")
-    argument_parser.add_argument("command", choices=["parse_har", "alarm"])
+    argument_parser.add_argument("command", choices=["parse_har", "alarm", "parse_headers"])
     argument_parser.add_argument("path")
     argument_parser.add_argument("-v", "--verbose", action="store_true")
     return argument_parser
@@ -161,6 +191,7 @@ def create_logger(verbose):
     return logger
 
 
+
 if __name__ == "__main__":
     argument_parser = create_argument_parser()
     arguments = argument_parser.parse_args()
@@ -169,6 +200,9 @@ if __name__ == "__main__":
     if arguments.command == "parse_har":
         har_path = path
         parse_har(har_path)
+    elif arguments.command == "parse_headers":
+        headers_path = path
+        parse_headers(headers_path)
     elif arguments.command == "alarm":
         headers_path = path
         scrape_and_alarm(headers_path)
