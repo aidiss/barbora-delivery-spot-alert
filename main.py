@@ -5,7 +5,10 @@ import platform
 import random
 import sys
 import time
+
 import requests
+
+from utils import HTTPRequest
 
 PLATFORM = "WIN"
 
@@ -187,7 +190,6 @@ def create_logger(verbose):
     logger.addHandler(ch)
     return logger
 
-from utils import HTTPRequest
 
 
 if __name__ == "__main__":

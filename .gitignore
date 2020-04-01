@@ -132,3 +132,4 @@ dmypy.json
 cookies.json
 headers
 headers.json
+.vscode/

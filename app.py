@@ -1,27 +1,28 @@
-import flask
-from main import magic, create_logger
 import datetime
 
+import flask
 
-app = flask.Flask(__name__)
+from main import create_logger, magic
+
+app = flask.Flask(__name__,static_folder='static',)
+
 
 def event_stream():
     message = magic()
-    yield f'data: ' + message + '\n'\
-          'retry: 60000\n'\
-          '\n'
+    yield f"data: " + message + "\n" "retry: 60000\n" "\n"
 
 
-@app.route('/')
+@app.route("/")
 def home():
-    return flask.render_template('index.html')
+    return flask.render_template("index.html")
 
 
-@app.route('/stream')
+@app.route("/stream")
 def stream():
     return flask.Response(event_stream(), mimetype="text/event-stream")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     logger = create_logger(verbose=True)
-    app.debug = True
+    app.debug = False
     app.run(threaded=True)
