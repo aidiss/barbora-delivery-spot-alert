@@ -5,29 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barbora</title>
+    <link rel="stylesheet" type="text/css" href="./static/style.css">
 </head>
 
 <body>
-    <h1>Watch barbora</h1>
-    <div id="barbora_count">Waiting for first update<br>Click anywhere on page to enable sound alarm</div>
+    <h1>Barbora, kada galėtum užsukti?</h1>
+    <div>
+        <label class="switch">
+            <input type="checkbox" onclick="toggleAlarm()"  class="myButton">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <br>
+    <div id="barbora_count">Barbora: Tuoj pažiūrėsiu</div>
 </body>
-<script>
-    var targetContainer = document.getElementById("barbora_count");
-    var eventSource = new EventSource("/stream")
-    audio = new Audio('static/sounds/service-bell_daniel_simion.mp3')
-    eventSource.onopen = function (e) {
-        console.log('Event stream initiated')
-        
-    }
-
-    eventSource.onmessage = function (e) {
-        targetContainer.innerHTML = e.data + '<br>' + targetContainer.innerHTML;
-
-        if (!(e.data.includes('0 open'))) {
-            audio.play()
-        }
-    };
-
-</script>
-
+<script src="static/script.js"></script> 
 </html>

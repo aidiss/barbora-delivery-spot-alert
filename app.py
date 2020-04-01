@@ -1,4 +1,5 @@
 import datetime
+import sys
 
 import flask
 
@@ -8,8 +9,8 @@ app = flask.Flask(__name__, static_folder='static')
 
 
 def event_stream():
-    message = magic()
-    yield f"data: " + message + "\n" "retry: 60000\n" "\n"
+    message = magic(HEADERS)
+    yield f"data: {message}\nretry: 60000\n\n"
 
 
 @app.route("/")
@@ -24,5 +25,10 @@ def stream():
 
 if __name__ == "__main__":
     logger = create_logger(verbose=True)
+    try:
+        HEADERS = sys.argv[1]
+    except IndexError as _:
+        print("Please provide path tu raw headers file as an argument")
+        sys.exit(1)
     app.debug = False
     app.run(threaded=True)

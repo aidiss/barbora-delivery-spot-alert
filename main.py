@@ -12,10 +12,11 @@ from utils import HTTPRequest
 
 PLATFORM = "WIN"
 
-if platform.system().lower().startswith('win'):
+if platform.system().lower().startswith("win"):
     import winsound
-elif platform.system().lower().startswith('dar'):
+elif platform.system().lower().startswith("dar"):
     import os
+
     PLATFORM = "MAC"
 
 BEEP_FREQUENCY = 1000
@@ -84,8 +85,8 @@ def scrape_and_alarm(headers_path):
 
         if slots["available"]:
             logger.info("%s Open slots found!", len(slots["available"]))
-            for slot in slots['available']:
-                logger.info('%s  %s', slot['deliveryTime'], slot['hour'])
+            for slot in slots["available"]:
+                logger.info("%s  %s", slot["deliveryTime"], slot["hour"])
             try:
                 if PLATFORM == "WIN":
                     winsound.Beep(BEEP_FREQUENCY, BEEP_DURATION)
@@ -95,6 +96,7 @@ def scrape_and_alarm(headers_path):
                 # No beep for windows
                 # Beep for Linux ALSA
                 import os
+
                 os.system("speaker-test -t sine -f 1000 -l 1 & sleep .9 && kill -9 $!")
                 pass
 
@@ -119,6 +121,7 @@ def parse_har(path):
         with open(output_filename, "w") as f:
             json.dump(headers, f, indent=4)
 
+
 def parse_headers(path):
     with open(path) as f:
         data = f.read()
@@ -126,12 +129,12 @@ def parse_headers(path):
     request = HTTPRequest(data)
 
     headers = dict(request.headers)
-
+    # Yes this is terrible design. Please fix this.
     if headers:
         output_filename = path + ".json"
         with open(output_filename, "w") as f:
             json.dump(headers, f, indent=4)
-
+    return headers
 
 
 def get_delivieries_headers(data):
@@ -156,23 +159,23 @@ def get_available_hours(data):
 
     return slots
 
-def magic():
-    # load headers
-    headers_path = 'headers.json'
-    with open(headers_path) as f:
-        headers = json.load(f)
-    session = requests.Session()
-    session.headers.update(headers)
-    response = session.get(barbora_deliveries_url)
+
+def magic(headers_path):
+    headers = parse_headers(headers_path)
+    response = requests.get(barbora_deliveries_url, headers=headers)
     data = response.json()
     slots = get_available_hours(data)
-    report = "%s open and %s closed slots" % (len(slots["available"]), len(slots["not_available"]))
+    available_slot_count = len(slots["available"])
+    not_available_slot_count = len(slots["not_available"])
+    report = f"Barbora: Artimiausiu metu turiu {available_slot_count} laisvų ir {not_available_slot_count} užimtų vietų"
     return report
 
 
 def create_argument_parser():
     argument_parser = argparse.ArgumentParser(description="This is magic script")
-    argument_parser.add_argument("command", choices=["parse_har", "alarm", "parse_headers"])
+    argument_parser.add_argument(
+        "command", choices=["parse_har", "alarm", "parse_headers"]
+    )
     argument_parser.add_argument("path")
     argument_parser.add_argument("-v", "--verbose", action="store_true")
     return argument_parser
@@ -192,7 +195,6 @@ def create_logger(verbose):
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     return logger
-
 
 
 if __name__ == "__main__":

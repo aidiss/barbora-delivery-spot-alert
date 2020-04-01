@@ -50,13 +50,18 @@ Everytime script finds a slot it text or beep.
 
 ## Web app
 
-- There is a flask web app at ./app.py
-- To run dev server "python app.py"
-- App will hit API every 60 seconds and send Server-Sent event (https://www.w3schools.com/html/html5_serversentevents.asp)
-- It will play a sounds every time an open slot is found
+There is a flask web app at ./app.py
+To run dev server use
+```sh
+python app.py headers.txt
+```
+headers.txt should be a raw headers file copied form developers console
+
+- App will hit API every 60 seconds.
+- Use toggle to enable alarm sound
 
 
-## Version tracked
+## Version tracker
 
 - Flask Web app
 - Linux ALSA support
@@ -65,6 +70,7 @@ Everytime script finds a slot it text or beep.
 - Header extraction from HAR
 
 ## OS support
+
 - Windows Beep sound
 - Linux @robertasmurnikovas and @montvid
 - MacOs @sidlauskaslukas
