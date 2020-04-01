@@ -9,21 +9,23 @@
 
 <body>
     <h1>Watch barbora</h1>
-    <div id="barbora_count">Waiting for first updated</div>
+    <div id="barbora_count">Waiting for first update<br>Click anywhere on page to enable sound alarm</div>
 </body>
-
 <script>
     var targetContainer = document.getElementById("barbora_count");
     var eventSource = new EventSource("/stream")
-
+    audio = new Audio('static/sounds/service-bell_daniel_simion.mp3')
     eventSource.onopen = function (e) {
         console.log('Event stream initiated')
-        audio = new Audio('static/sounds/service-bell_daniel_simion.mp3')
-        audio.Play
+        
     }
 
     eventSource.onmessage = function (e) {
         targetContainer.innerHTML = e.data + '<br>' + targetContainer.innerHTML;
+
+        if (!(e.data.includes('0 open'))) {
+            audio.play()
+        }
     };
 
 </script>

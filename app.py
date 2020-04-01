@@ -4,7 +4,7 @@ import flask
 
 from main import create_logger, magic
 
-app = flask.Flask(__name__,static_folder='static',)
+app = flask.Flask(__name__, static_folder='static')
 
 
 def event_stream():
