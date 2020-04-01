@@ -93,6 +93,9 @@ def scrape_and_alarm(headers_path):
                     os.system('say "Open slots found"')
             except Exception as _:
                 # No beep for windows
+                # Beep for Linux ALSA
+                import os
+                os.system("speaker-test -t sine -f 1000 -l 1 & sleep .9 && kill -9 $!")
                 pass
 
         logger.info(
