@@ -153,11 +153,17 @@ def get_available_hours(data):
     matrix = [x["params"]["matrix"] for x in data["deliveries"]][0]
     for x in matrix:
         for hour in x["hours"]:
-            if hour["available"]:
-                slots["available"].append(hour)
+            delivery_time = hour["deliveryTime"].split("T")[0]
+            if delivery_time in ["2020-11-12", "2020-11-13", "2020-11-14",
+            # "2020-11-15"
+            ]:
+                if hour["available"]:
+                    slots["available"].append(hour)
+                else:
+                    slots["not_available"].append(hour)
+                
             else:
                 slots["not_available"].append(hour)
-
     return slots
 
 

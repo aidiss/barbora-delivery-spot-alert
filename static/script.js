@@ -19,10 +19,9 @@ function updateLog(data) {
 }
 
 function processStatus(data) {
-    console.log('WTF')
     if (isAlarmEnabled === false) {
         console.log("Not playing, Alarm disabled");
-    } else if (data.includes('0 laisvų')) {
+    } else if (data.includes(' 0 laisvų')) {
         console.log("0 laisvų");
     } else {
         alarm_sound.play();

@@ -10,7 +10,7 @@ app = flask.Flask(__name__, static_folder='static')
 
 def event_stream():
     message = magic(HEADERS)
-    yield f"data: {message}\nretry: 60000\n\n"
+    yield f"data: {message}\nretry: 66000\n\n"
 
 
 @app.route("/")
