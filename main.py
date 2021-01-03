@@ -30,7 +30,7 @@ LOG_LEVEL = "INFO"
 barbora_deliveries_url = "https://www.barbora.lt/api/eshop/v1/cart/deliveries"
 
 
-def scrape_and_alarm(headers_path):
+def scrape_and_alarm(headers_path, run_once):
     headers = {}
     with open(headers_path) as f:
         try:
@@ -107,6 +107,9 @@ def scrape_and_alarm(headers_path):
             len(slots["not_available"]),
         )
 
+        if run_once:
+            break
+
         time.sleep(random.randint(*SLEEP_RANGE))
 
 
@@ -175,10 +178,18 @@ def magic(headers_path):
 def create_argument_parser():
     argument_parser = argparse.ArgumentParser(description="This is magic script")
     argument_parser.add_argument(
-        "command", choices=["parse_har", "alarm", "parse_headers"]
+        "command", choices=["parse-har", "parse-header", "alarm"],
+        help="Reads input file based on command"
     )
-    argument_parser.add_argument("path")
-    argument_parser.add_argument("-v", "--verbose", action="store_true")
+    argument_parser.add_argument("path",
+        help="Path to input file with header data"
+    )
+    argument_parser.add_argument("-o", "--run-once", action="store_true",
+        help="Run check up ONCE"
+    )
+    argument_parser.add_argument("-v", "--verbose", action="store_true",
+        help="Verbose logging"
+    )
     return argument_parser
 
 
@@ -202,13 +213,13 @@ if __name__ == "__main__":
     argument_parser = create_argument_parser()
     arguments = argument_parser.parse_args()
     logger = create_logger(arguments.verbose)
+
     path = arguments.path
-    if arguments.command == "parse_har":
-        har_path = path
-        parse_har(har_path)
-    elif arguments.command == "parse_headers":
-        headers_path = path
-        parse_headers(headers_path)
-    elif arguments.command == "alarm":
-        headers_path = path
-        scrape_and_alarm(headers_path)
+    if arguments.command == "parse-har":
+        parse_har(path)
+        path = path + ".json"
+    elif arguments.command == "parse-header":
+        parse_headers(path)
+        path = path + ".json"
+
+    scrape_and_alarm(path, arguments.run_once)
